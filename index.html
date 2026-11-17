@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VoxelPlanet · Documentation</title>
+<meta name="description" content="VoxelPlanet for Unity: walkable, diggable voxel planets with caves, life, clouds and a Planet Editor. Setup, controls and a full guide.">
+<meta property="og:title" content="VoxelPlanet · Documentation">
+<meta property="og:description" content="Little worlds you can walk on, dig into and fly around. The full guide to VoxelPlanet for Unity.">
+<meta property="og:image" content="assets/img/cover.jpg">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/site.css">
+<script>
+  // Pick the theme before the page paints, so it never flashes the wrong one.
+  (function () {
+    try {
+      var saved = localStorage.getItem('vp-theme');
+      var theme = saved || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+      document.documentElement.setAttribute('data-theme', theme);
+    } catch (e) { /* storage blocked: stay dark */ }
+  })();
+</script>
+<script type="importmap">
+  { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+</script>
+</head>
+<body>
+
+<a class="skip" href="#content">Skip to the guide</a>
+
+<!-- ================================================================ header -->
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menuBtn" aria-label="Open the contents" aria-expanded="false" aria-controls="sidebar">
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+  </button>
+  <a class="brand" href="#top">
+    <img src="assets/img/favicon.svg" alt="" width="28" height="28">
+    <span>VoxelPlanet</span>
+    <span class="pill">Docs · v1.0</span>
+  </a>
+
+  <div class="search" role="search">
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    <input id="searchInput" type="search" placeholder="Search the guide" autocomplete="off" aria-label="Search the guide" aria-controls="searchResults" aria-expanded="false">
+    <kbd class="search-key">/</kbd>
+    <ul id="searchResults" class="search-results" role="listbox" hidden></ul>
+  </div>
+
+  <div class="top-actions">
+    <a class="btn btn-ghost hide-sm" href="assets/VoxelPlanet_User_Guide.pdf" download>
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 4v11m0 0l-4-4m4 4l4-4M5 20h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      PDF
+    </a>
+    <button class="icon-btn" id="themeBtn" aria-label="Switch between light and dark">
+      <svg class="sun" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="4.5" fill="currentColor"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></g></svg>
+      <svg class="moon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" fill="currentColor"/></svg>
+    </button>
+  </div>
+</header>
+
+<!-- ================================================================ hero -->
+<section class="hero" id="top">
+  <div class="hero-text">
+    <p class="kicker">dev505 · for Unity and URP</p>
+    <h1>VoxelPlanet</h1>
+    <p class="tagline">Little worlds you can walk on, dig into and fly around.</p>
+    <p class="hero-lead">A whole planet in your scene, about 7.5 km around and made of voxels, so every bit of it can be dug out or built up. This is the guide: from importing the package to building planets of your own.</p>
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="#getting-started">Get started</a>
+      <a class="btn btn-ghost" href="assets/VoxelPlanet_User_Guide.pdf" download>Download the PDF guide</a>
+      <a class="btn btn-ghost" id="storeBtn" href="#" hidden>Asset Store</a>
+    </div>
+    <ul class="facts">
+      <li><b>6</b> ready-made planets</li>
+      <li><b>5</b> cave layers deep</li>
+      <li><b>1,200 m</b> radius</li>
+      <li>Unity <b>6000.6</b> · URP <b>17.6</b></li>
+    </ul>
+  </div>
+
+  <div class="hero-planet">
+    <div class="planet-stage" id="planetStage">
+      <canvas id="planetCanvas" aria-label="A spinning low-poly planet. Drag to turn it." role="img"></canvas>
+      <img class="planet-fallback" src="assets/img/orbit.jpg" alt="A VoxelPlanet planet seen from orbit" hidden>
+      <p class="planet-hint">Drag to spin</p>
+    </div>
+    <div class="planet-pick" role="radiogroup" aria-label="Pick a planet">
+      <button role="radio" data-planet="azure" aria-checked="true" style="--c:#2B6FD6">Azure</button>
+      <button role="radio" data-planet="ember" aria-checked="false" style="--c:#B5402C">Ember</button>
+      <button role="radio" data-planet="verdant" aria-checked="false" style="--c:#3FA05A">Verdant</button>
+      <button role="radio" data-planet="coral" aria-checked="false" style="--c:#E889A8">Coral</button>
+      <button role="radio" data-planet="violet" aria-checked="false" style="--c:#5A34B8">Violet</button>
+      <button role="radio" data-planet="ash" aria-checked="false" style="--c:#6E6E7A">Ash</button>
+    </div>
+    <p class="planet-note" id="planetNote">Azure: blue seas of dust with white plates.</p>
+  </div>
+</section>
+
+<!-- ================================================================ layout -->
+<div class="layout">
+  <nav class="sidebar" id="sidebar" aria-label="Contents">
+    <p class="side-title">Guide</p>
+    <ol class="toc">
+      <li><a href="#welcome">Welcome</a></li>
+      <li><a href="#requirements">Before you start</a></li>
+      <li><a href="#getting-started">Getting started</a>
+        <ol><li><a href="#welcome-window">The Welcome window</a></li><li><a href="#new-scene">New planet scene</a></li></ol></li>
+      <li><a href="#playing">Playing</a>
+        <ol><li><a href="#controls">Controls</a></li><li><a href="#jetpack">Jetpack and orbit</a></li></ol></li>
+      <li><a href="#terrain-tool">The terrain tool</a></li>
+      <li><a href="#saves">Saved games</a></li>
+      <li><a href="#planet-editor">The Planet Editor</a>
+        <ol><li><a href="#editor-tour">A tour</a></li><li><a href="#previews">The previews</a></li><li><a href="#settings">Settings</a></li><li><a href="#shortcuts">Shortcuts</a></li></ol></li>
+      <li><a href="#make-a-planet">Make your own planet</a></li>
+      <li><a href="#your-scene">Your own scene</a></li>
+      <li><a href="#performance">Performance</a></li>
+      <li><a href="#troubleshooting">Troubleshooting</a></li>
+      <li><a href="#folders">What's where</a></li>
+      <li><a href="#support">Credits and support</a></li>
+    </ol>
+  </nav>
+  <div class="scrim" id="scrim" hidden></div>
+
+  <main id="content" class="content" tabindex="-1">
+
+<!-- ================================================================ 1 welcome -->
+<section id="welcome" class="doc">
+  <h2><span class="num">1</span>Welcome</h2>
+  <p class="lead">You walk on the planet in third person, fly with a jetpack, dig down through layers of caves towards a glowing core, and zoom out to orbit to watch the whole thing turn.</p>
+  <p>You don't sculpt planets by hand. Each planet is one asset holding its settings: hills, mountains, craters, caves, colours, plants, animals and sky. The Planet Editor shows you the result while you drag the sliders. Six finished planets come with the package, so you can start playing straight away and then take them apart to see how they work.</p>
+
+  <div class="cards">
+    <article class="card"><span class="card-icon"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 19l6-10 4 6 2-3 6 7z"/></svg></span><h3>Round voxel terrain</h3><p>Change it anywhere. Level of detail holds up from your feet all the way out to orbit.</p></article>
+    <article class="card"><span class="card-icon"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19l9-9"/><path d="M13 5l6 6-3 3-6-6z"/></svg></span><h3>A terrain tool</h3><p>Four modes: excavate, add, flatten and level. Build towers, dig tunnels, make floors.</p></article>
+    <article class="card"><span class="card-icon"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 12.5l9 5 9-5"/><path d="M3 17l9 5 9-5"/></svg></span><h3>Five cave layers</h3><p>Each with its own colours, plants and faint light, and a molten core at the centre.</p></article>
+    <article class="card"><span class="card-icon"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19c0-8 6-14 14-14 0 8-6 14-14 14z"/><path d="M5 19l8-8"/></svg></span><h3>Plants and animals</h3><p>Plants on the surface and in the caves, and animals that roam the surface, placed by biome.</p></article>
+    <article class="card"><span class="card-icon"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18h10a4 4 0 0 0 0-8 6 6 0 0 0-11.5 1.5A3.5 3.5 0 0 0 7 18z"/></svg></span><h3>A living sky</h3><p>Day and night, rounded clouds that shade the ground, fog with light shafts, a ring and moons.</p></article>
+    <article class="card"><span class="card-icon"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg></span><h3>The Planet Editor</h3><p>A window for designing planets with live previews, checks and numbers.</p></article>
+  </div>
+
+  <div class="gallery" aria-label="Screenshots">
+    <figure><img src="assets/img/surface.jpg" alt="Azure's blue plains under drifting clouds" loading="lazy"><figcaption>Azure, from just above the plains.</figcaption></figure>
+    <figure><img src="assets/img/clouds.jpg" alt="Flying level with the clouds" loading="lazy"><figcaption>Level with the clouds.</figcaption></figure>
+    <figure><img src="assets/img/cover.jpg" alt="Clouds lit by the setting sun" loading="lazy"><figcaption>Dusk on Azure.</figcaption></figure>
+    <figure><img src="assets/img/core.jpg" alt="The molten core glowing under the rock" loading="lazy"><figcaption>Dig deep enough and you reach the core.</figcaption></figure>
+  </div>
+</section>
+
+<!-- ================================================================ 2 requirements -->
+<section id="requirements" class="doc">
+  <h2><span class="num">2</span>Before you start</h2>
+  <p>VoxelPlanet is written for the Universal Render Pipeline. The shaders won't work in the Built-in pipeline or in HDRP.</p>
+  <div class="req-grid">
+    <div class="req"><span>Unity</span><b>6000.6.8f1 or newer</b></div>
+    <div class="req"><span>Render pipeline</span><b>URP 17.6</b></div>
+    <div class="req"><span>Packages</span><b>Burst · Collections · Input System · Profiling Core · uGUI</b></div>
+    <div class="req"><span>Input handling</span><b>Input System, or Both</b></div>
+    <div class="req"><span>Hardware</span><b>A desktop graphics card</b></div>
+  </div>
+  <p>You don't have to check any of this by hand. The Welcome window does it for you as soon as you import the package, and fixes most of it with one click.</p>
+  <div class="callout note"><b>Starting from scratch?</b><p>Create a new project from the <span class="ui">Universal 3D</span> template in Unity Hub. It comes with URP set up.</p></div>
+  <p class="muted">A planet has a radius of 1,200 m. The first time a planet loads, VoxelPlanet bakes its surface into a cache file of about 25 MB. That takes around a second; after that the planet starts straight away.</p>
+</section>
+
+<!-- ================================================================ 3 getting started -->
+<section id="getting-started" class="doc">
+  <h2><span class="num">3</span>Getting started</h2>
+  <p class="lead">This takes a few minutes. Tick the steps off as you go; this page remembers where you got to.</p>
+
+  <div class="progress" aria-hidden="true"><div class="progress-bar" id="stepsBar"></div></div>
+  <ol class="checklist" id="startSteps">
+    <li><label><input type="checkbox" data-step="urp"><span class="tick"></span><span><b>Open a URP project.</b> A new project made from the Universal 3D template is perfect.</span></label></li>
+    <li><label><input type="checkbox" data-step="import"><span class="tick"></span><span><b>Import VoxelPlanet.</b> In <span class="ui">Window › Package Manager</span>, open <span class="ui">My Assets</span>, find VoxelPlanet and click <span class="ui">Import</span>. Everything goes into <code class="copy">Assets/DEV505/VoxelPlanet</code>.</span></label></li>
+    <li><label><input type="checkbox" data-step="welcome"><span class="tick"></span><span><b>Let the Welcome window check your project.</b> It opens by itself after the import, or from <span class="ui">Tools › DEV505 › VoxelPlanet › Welcome</span>. Click <span class="ui">Fix all</span>, or the button next to a line. If it has to switch on the Input System, Unity restarts once.</span></label></li>
+    <li><label><input type="checkbox" data-step="play"><span class="tick"></span><span><b>Press Play.</b> Click <span class="ui">Open the demo scene</span> in the Welcome window, then press Play. You'll land on the surface with the terrain tool in your hand.</span></label></li>
+  </ol>
+  <p class="steps-done" id="stepsDone" hidden>All done. Have fun on your planet! <button class="link-btn" id="stepsReset">Start over</button></p>
+
+  <h3 id="welcome-window">The Welcome window</h3>
+  <div class="split">
+    <figure class="shot-small"><img src="assets/img/welcome.png" alt="The Welcome window listing one problem and one suggestion" loading="lazy"><figcaption>One problem (red) and one suggestion (orange). Fix all sorts out both.</figcaption></figure>
+    <div>
+      <p>The Welcome window looks at everything VoxelPlanet needs from your project. Red lines stop VoxelPlanet from running; orange ones are suggestions. Click a check to see what its button does.</p>
+      <div class="accordion" id="checks">
+        <details><summary><span class="dot bad"></span>Required packages</summary><p>Installs whichever of Universal RP, Burst, Collections, Input System and Profiling Core are missing. Without them VoxelPlanet's scripts can't compile, so this one comes first. The window itself still works when they're missing.</p></details>
+        <details><summary><span class="dot bad"></span>Universal Render Pipeline in use</summary><p>Switches the project to the URP settings that come with VoxelPlanet.</p></details>
+        <details><summary><span class="dot bad"></span>Input System switched on</summary><p>Sets Active Input Handling to <i>Both</i>, so anything in your project that uses the old Input Manager keeps working, then restarts Unity after asking.</p></details>
+        <details><summary><span class="dot bad"></span>Layers Terrain, Player and FloraCollider</summary><p>Adds them to free layer slots. VoxelPlanet finds its layers by name, so it doesn't matter which slots they get, even if your project already uses slots 6 to 8.</p></details>
+        <details><summary><span class="dot warn"></span>Depth Texture on</summary><p>Turns it on in your URP asset. Without it there's no ground fog, no light shafts and no soft dust.</p></details>
+        <details><summary><span class="dot warn"></span>Ambient occlusion</summary><p>Offers to switch to VoxelPlanet's URP settings, which have it, and asks first. Or add <i>Screen Space Ambient Occlusion</i> to your own renderer.</p></details>
+        <details><summary><span class="dot warn"></span>Linear colour space</summary><p>Switches the project to Linear. Unity reimports your textures, which can take a while.</p></details>
+      </div>
+      <p class="muted">The window opens by itself the first time, after an update, and whenever Unity starts with something red. A tick box at the bottom turns that last one off.</p>
+    </div>
+  </div>
+
+  <h3 id="new-scene">Your own planet scene in one click</h3>
+  <p>Under <span class="ui">New planet scene</span> in the Welcome window, pick a planet, tick <span class="ui">Start in orbit</span> if you like, and click <span class="ui">Create scene</span>. Choose where to save it. You get a new scene with a sun, a camera and the planet, added to Build Settings, and nothing else in your project changes.</p>
+  <div class="callout warn"><b>You don't need Setup Project</b><p>The Tools menu also has <span class="ui">Setup Project</span>. It builds VoxelPlanet's own demo and benchmark scenes, and every run rebuilds <code>Main.unity</code> and those scenes from scratch and replaces the scene list in Build Settings. Use New planet scene for your own scenes instead.</p></div>
+</section>
+
+<!-- ================================================================ 4 playing -->
+<section id="playing" class="doc">
+  <h2><span class="num">4</span>Playing</h2>
+  <p>You play in third person, and the game captures the mouse. Press <kbd>Esc</kbd> to get the cursor back, for example to use the Inspector; click in the Game view to capture it again. That first click only grabs the mouse, it won't dig a hole.</p>
+
+  <h3 id="controls">Controls</h3>
+  <p>Point at an action to see its keys, or at a key to see what it does.</p>
+  <div class="controls" id="controls-explorer">
+    <div class="seg" role="tablist" aria-label="Input device">
+      <button role="tab" aria-selected="true" data-device="kb">Keyboard and mouse</button>
+      <button role="tab" aria-selected="false" data-device="pad">Gamepad</button>
+    </div>
+    <div class="controls-body">
+      <ul class="action-list" id="actionList"></ul>
+      <div class="device">
+        <div class="kb" id="kbView">
+          <div class="kb-row"><span class="key" data-key="Esc">Esc</span><span class="gap"></span><span class="key" data-key="F1">F1</span><span class="key dim">F2</span><span class="key" data-key="F3">F3</span><span class="key" data-key="F4">F4</span><span class="key" data-key="F5">F5</span><span class="key dim">…</span><span class="key" data-key="F9">F9</span></div>
+          <div class="kb-row"><span class="key dim">`</span><span class="key" data-key="1">1</span><span class="key" data-key="2">2</span><span class="key dim">3</span><span class="key dim">4</span><span class="gap"></span><span class="key" data-key="[">[</span><span class="key" data-key="]">]</span></div>
+          <div class="kb-row"><span class="key wide" data-key="Tab">Tab</span><span class="key" data-key="Q">Q</span><span class="key" data-key="W">W</span><span class="key" data-key="E">E</span><span class="key dim">R</span><span class="gap"></span><span class="key" data-key="L">L</span></div>
+          <div class="kb-row"><span class="key wider dim">Caps</span><span class="key" data-key="A">A</span><span class="key" data-key="S">S</span><span class="key" data-key="D">D</span><span class="key dim">F</span></div>
+          <div class="kb-row"><span class="key widest" data-key="Shift">Shift</span><span class="key dim">Z</span><span class="key dim">X</span><span class="key dim">C</span><span class="gap"></span><span class="key arrow" data-key="Arrows">↑↓←→</span></div>
+          <div class="kb-row"><span class="key wide" data-key="Ctrl">Ctrl</span><span class="key" data-key="Alt">Alt</span><span class="key space" data-key="Space">Space</span></div>
+          <svg class="mouse" viewBox="0 0 80 120" aria-hidden="true">
+            <rect x="6" y="6" width="68" height="108" rx="34" class="m-body"/>
+            <path d="M40 6 v44 M6 50 h68" class="m-line"/>
+            <path d="M40 6 A34 34 0 0 0 6 40 V50 H40 Z" class="m-btn" data-key="LMB"/>
+            <path d="M40 6 A34 34 0 0 1 74 40 V50 H40 Z" class="m-btn" data-key="RMB"/>
+            <rect x="35" y="18" width="10" height="22" rx="5" class="m-wheel" data-key="Wheel"/>
+            <path d="M40 66 v26" class="m-line" data-key="Mouse"/>
+          </svg>
+        </div>
+        <svg class="pad" id="padView" viewBox="0 0 400 230" hidden aria-hidden="true">
+          <rect x="60" y="8" width="70" height="16" rx="7" class="p-btn" data-pad="lt"/><text x="95" y="20">LT</text>
+          <rect x="270" y="8" width="70" height="16" rx="7" class="p-btn" data-pad="rt"/><text x="305" y="20">RT</text>
+          <rect x="56" y="30" width="78" height="16" rx="7" class="p-btn" data-pad="lb"/><text x="95" y="42">LB</text>
+          <rect x="266" y="30" width="78" height="16" rx="7" class="p-btn" data-pad="rb"/><text x="305" y="42">RB</text>
+          <path d="M70 56 Q200 40 330 56 Q395 70 388 160 Q382 220 330 214 Q300 210 280 180 L120 180 Q100 210 70 214 Q18 220 12 160 Q5 70 70 56Z" class="p-body"/>
+          <circle cx="105" cy="100" r="24" class="p-btn" data-pad="ls"/><circle cx="105" cy="100" r="11" class="p-cap" data-pad="l3"/>
+          <circle cx="250" cy="150" r="24" class="p-btn" data-pad="rs"/><circle cx="250" cy="150" r="11" class="p-cap" data-pad="r3"/>
+          <rect x="140" y="126" width="16" height="16" class="p-btn" data-pad="du"/><rect x="140" y="158" width="16" height="16" class="p-btn" data-pad="dd"/>
+          <rect x="124" y="142" width="16" height="16" class="p-btn" data-pad="dl"/><rect x="156" y="142" width="16" height="16" class="p-btn" data-pad="dr"/>
+          <rect x="174" y="92" width="22" height="12" rx="6" class="p-btn" data-pad="select"/><rect x="206" y="92" width="22" height="12" rx="6" class="p-btn" data-pad="start"/>
+          <circle cx="300" cy="78" r="12" class="p-btn" data-pad="y"/><text x="300" y="82">Y</text>
+          <circle cx="324" cy="100" r="12" class="p-btn" data-pad="b"/><text x="324" y="104">B</text>
+          <circle cx="276" cy="100" r="12" class="p-btn" data-pad="x"/><text x="276" y="104">X</text>
+          <circle cx="300" cy="122" r="12" class="p-btn" data-pad="a"/><text x="300" y="126">A</text>
+        </svg>
+        <p class="device-caption" id="deviceCaption">Point at something.</p>
+      </div>
+    </div>
+  </div>
+  <p class="muted">Every binding lives in <code class="copy">Input/InputSystem_Actions</code>. Open it to change any of them.</p>
+
+  <h3 id="jetpack">Jetpack and orbit view</h3>
+  <div class="split">
+    <div>
+      <p><b>The jetpack.</b> Jump, then keep holding <kbd>Space</kbd>. After about a quarter of a second it kicks in and pushes you up at up to 20 m/s. It holds three seconds of fuel, which refills while you're on the ground.</p>
+      <p><b>Orbit view.</b> Press <kbd>Tab</kbd> and the camera flies out to about 5.8 km in a couple of seconds. Your astronaut waits where you left them. Drag to turn around the planet and use the wheel (or the triggers) to zoom between 1.7 and 9 km. <kbd>Tab</kbd> again flies you back down.</p>
+      <p><b>Handy keys while testing.</b> <kbd>F1</kbd> free camera (<kbd>Q</kbd>/<kbd>E</kbd> down and up, hold the right mouse button to look), <kbd>F3</kbd> on-screen display, <kbd>F4</kbd> statistics, <kbd>F5</kbd> save, <kbd>F9</kbd> load.</p>
+    </div>
+    <figure class="shot-small"><img src="assets/img/orbit.jpg" alt="Orbit view of Azure with its ring and clouds" loading="lazy"><figcaption>Orbit view on Azure.</figcaption></figure>
+  </div>
+</section>
+
+<!-- ================================================================ 5 terrain tool -->
+<section id="terrain-tool" class="doc">
+  <h2><span class="num">5</span>The terrain tool</h2>
+  <p>The tool reaches about 16 m. Wherever you point it, a glowing ring on the ground shows the brush: that's the area you're about to change. The panel in the bottom-left corner shows the mode and the brush size.</p>
+  <figure><img src="assets/img/tool.jpg" alt="The glowing brush ring on the ground next to the astronaut, with the tool panel in the corner" loading="lazy"><figcaption>The brush ring on Ash, with the tool panel in the corner.</figcaption></figure>
+
+  <div class="modes">
+    <div class="seg" role="tablist" aria-label="Tool mode">
+      <button role="tab" aria-selected="true" data-mode="excavate">Excavate</button>
+      <button role="tab" aria-selected="false" data-mode="add">Add</button>
+      <button role="tab" aria-selected="false" data-mode="flatten">Flatten</button>
+      <button role="tab" aria-selected="false" data-mode="level">Level</button>
+    </div>
+    <div class="mode-body">
+      <svg class="mode-art" id="modeArt" viewBox="0 0 320 140" aria-hidden="true">
+        <path id="groundBefore" class="ground-before" d=""/>
+        <path id="groundAfter" class="ground-after" d=""/>
+        <circle id="modeBrush" class="mode-brush" cx="160" cy="70" r="28"/>
+      </svg>
+      <div>
+        <h4 id="modeTitle">Excavate</h4>
+        <p id="modeText"></p>
+        <p class="muted" id="modeKey"></p>
+      </div>
+    </div>
+  </div>
+
+  <h3>Brush size</h3>
+  <div class="brush-demo">
+    <svg viewBox="0 0 360 150" aria-hidden="true">
+      <rect x="0" y="118" width="360" height="32" class="b-ground"/>
+      <g id="astronaut" transform="translate(70 0)">
+        <rect x="-6" y="88" width="12" height="30" rx="5" class="b-suit"/>
+        <circle cx="0" cy="82" r="8" class="b-helmet"/>
+      </g>
+      <ellipse id="brushRing" cx="220" cy="118" rx="60" ry="12" class="b-ring"/>
+      <path id="brushDome" d="" class="b-dome"/>
+      <text x="70" y="146" class="b-label">1.8 m</text>
+      <text id="brushText" x="220" y="146" class="b-label">3.0 m</text>
+    </svg>
+    <label class="slider">
+      <span>Radius <b id="brushValue">3.0 m</b></span>
+      <input type="range" id="brushRange" min="1.5" max="6" step="0.5" value="3">
+    </label>
+    <p class="muted">Mouse wheel, or <kbd>[</kbd> and <kbd>]</kbd>, in half-metre steps from 1.5 m to 6 m. Next to the astronaut for scale.</p>
+  </div>
+
+  <p>There are two limits. You can't dig into the core, and you can't build above the planet's <i>build ceiling</i>, which is set per planet (by default 1,456 m from the centre, about 250 m above the surface). Everything you change goes into the saved game.</p>
+
+  <div class="split">
+    <figure class="shot-small"><img src="assets/img/core.jpg" alt="The glowing core" loading="lazy"><figcaption>The core glows, churns and lights the rock around it.</figcaption></figure>
+    <div><h4>Going underground</h4><p>Most planets have caves under the surface, in up to five layers. Sinkholes and shafts open some of them to the sky, and you can always dig your own way down.</p><p>It's dark down there. Press <kbd>L</kbd> for the helmet lamp. Each cave layer also has a faint light of its own, brighter the deeper you go, and plants that glow.</p></div>
+  </div>
+</section>
+
+<!-- ================================================================ 6 saves -->
+<section id="saves" class="doc">
+  <h2><span class="num">6</span>Saved games</h2>
+  <p>Every change the player makes to the ground is saved, along with where the player is standing and the time of day. Animals aren't saved; they're placed again when the planet loads.</p>
+  <div class="timeline">
+    <div><b>Every 2 minutes</b><span>Autosave. Only the parts of the planet that changed are written, so it's quick.</span></div>
+    <div><b><kbd>F5</kbd> / <kbd>F9</kbd></b><span>Save now, or load the last save.</span></div>
+    <div class="bad"><b>On quit</b><span>Nothing. If you stop Play mode straight after building something, press <kbd>F5</kbd> first.</span></div>
+  </div>
+
+  <h3>Where saves live</h3>
+  <div class="tabs" data-tabs>
+    <div class="seg" role="tablist" aria-label="Operating system">
+      <button role="tab" aria-selected="true" data-tab="win">Windows</button>
+      <button role="tab" aria-selected="false" data-tab="mac">macOS</button>
+      <button role="tab" aria-selected="false" data-tab="linux">Linux</button>
+    </div>
+    <div class="tab-panel" data-panel="win"><code class="copy block">%USERPROFILE%\AppData\LocalLow\&lt;Company&gt;\&lt;Product&gt;\Saves\slot0</code></div>
+    <div class="tab-panel" data-panel="mac" hidden><code class="copy block">~/Library/Application Support/&lt;Company&gt;/&lt;Product&gt;/Saves/slot0</code></div>
+    <div class="tab-panel" data-panel="linux" hidden><code class="copy block">~/.config/unity3d/&lt;Company&gt;/&lt;Product&gt;/Saves/slot0</code></div>
+  </div>
+  <p>Each slot holds a small <code>planet.vps</code> with the player's position and the time of day, plus one <code>.vpr</code> file for every 256 m block of the planet that has been changed. The quickest way there is the <span class="ui">Show folder</span> button in the <span class="ui">Saved game</span> section of the PlanetRuntime component.</p>
+
+  <h3>Saves belong to a planet's terrain</h3>
+  <p>If you change a planet's ground in the Planet Editor (its shape, caves or layers), old saves no longer fit it, and VoxelPlanet starts the planet fresh instead of loading them. Colours, plants, the sky and the clouds don't matter. The Planet Editor warns you before you save a change that would stop a save loading.</p>
+  <p><b>To start over</b>, delete the <code>slot0</code> folder, change <span class="ui">Save Slot</span> on PlanetRuntime, or untick <span class="ui">Load On Start</span> (fresh start, still saving) or <span class="ui">Enable Persistence</span> (no saving at all). After a terrain change, deleting the old slot folder is the tidy option.</p>
+</section>
+
+<!-- ================================================================ 7 planet editor -->
+<section id="planet-editor" class="doc">
+  <h2><span class="num">7</span>The Planet Editor</h2>
+  <p>This is where planets are made. Open it from <span class="ui">Tools › DEV505 › VoxelPlanet › Planet Editor</span>, by double-clicking a planet asset, or with the <span class="ui">Edit planet</span> button on PlanetRuntime.</p>
+
+  <h3 id="editor-tour">A tour</h3>
+  <p>Point at a number, or at a line in the list, to see what that part of the window does.</p>
+  <figure class="hotspots" id="hotspots">
+    <div class="hs-frame">
+      <img src="assets/img/editor_terrain.png" alt="The Planet Editor window with Verdant open" loading="lazy">
+      <!-- spots are added by site.js from the list below -->
+    </div>
+  </figure>
+  <ol class="hs-legend" id="hsLegend">
+    <li data-x="17" data-y="3.5"><b>Planet menu.</b> Open another planet, make a new one, duplicate this one, or compare it with another.</li>
+    <li data-x="94.6" data-y="5.2"><b>Undo, Redo, Revert, Save and Play.</b> A dot after the planet's name means unsaved changes.</li>
+    <li data-x="24.6" data-y="10.2"><b>Search and tabs.</b> The search box finds a setting on any tab; the tabs group them by topic.</li>
+    <li data-x="23.2" data-y="36"><b>Settings.</b> Drag a slider or type a number. Hover over a name to see what it does.</li>
+    <li data-x="42" data-y="4.1"><b>Preview tabs:</b> Planet, Layers and Cross-section.</li>
+    <li data-x="86" data-y="12.5"><b>The preview.</b> <i>Exact</i> means you're looking at the real game terrain, not a quick draft.</li>
+    <li data-x="79" data-y="82"><b>View bar.</b> Show or hide the atmosphere, clouds, ring, moons, plants and lamp, and move the sun.</li>
+    <li data-x="36" data-y="84.4"><b>Checks.</b> Problems and advice about the current settings.</li>
+    <li data-x="65.5" data-y="84.4"><b>Numbers.</b> Heights, how much is mountain or cliff, how open the caves are.</li>
+    <li data-x="93.2" data-y="31"><b>Depth ladder.</b> The surface, the cave layers and the core. Click to select, drag to change a depth.</li>
+    <li data-x="85.7" data-y="96"><b>Status line.</b> What the preview is doing, and the Refresh and Auto-refresh controls.</li>
+  </ol>
+
+  <h3 id="previews">The previews</h3>
+  <div class="tabs" data-tabs>
+    <div class="seg" role="tablist" aria-label="Preview">
+      <button role="tab" aria-selected="true" data-tab="planet">Planet</button>
+      <button role="tab" aria-selected="false" data-tab="layers">Layers</button>
+      <button role="tab" aria-selected="false" data-tab="section">Cross-section</button>
+    </div>
+    <div class="tab-panel" data-panel="planet"><p>The whole world. Drag to turn it, scroll to zoom, double-click to see all of it again. Click the surface to pick a place: that's where you start when you press Play. Hold <kbd>Alt</kbd> and drag to move the sun.</p><img src="assets/img/editor_planet.png" alt="The Planet preview" loading="lazy"></div>
+    <div class="tab-panel" data-panel="layers" hidden><p>One cave layer at a time: a map on the left, a view from inside on the right. Pick the level with <i>S</i> and <i>1</i> to <i>5</i>. In the inside view, drag to look and scroll, or use <kbd>W</kbd>/<kbd>S</kbd>, to walk.</p><img src="assets/img/editor_layers.png" alt="The Layers preview" loading="lazy"></div>
+    <div class="tab-panel" data-panel="section" hidden><p>The planet cut in half, so you can see every layer down to the core at once. Click a layer to select it.</p><img src="assets/img/editor_section.png" alt="The Cross-section preview" loading="lazy"></div>
+  </div>
+
+  <h3 id="settings">Settings</h3>
+  <p>The settings are split over six tabs, and every one has a tooltip. Pick a tab:</p>
+  <div class="tabs settings-tabs" data-tabs>
+    <div class="seg" role="tablist" aria-label="Settings tab">
+      <button role="tab" aria-selected="true" data-tab="t-terrain">Terrain</button>
+      <button role="tab" aria-selected="false" data-tab="t-caves">Caves</button>
+      <button role="tab" aria-selected="false" data-tab="t-colours">Colours</button>
+      <button role="tab" aria-selected="false" data-tab="t-life">Life</button>
+      <button role="tab" aria-selected="false" data-tab="t-sky">Sky</button>
+      <button role="tab" aria-selected="false" data-tab="t-more">More</button>
+    </div>
+    <div class="tab-panel" data-panel="t-terrain"><ul class="groups"><li><b>Shape</b> radius (1,200 m), core radius, build ceiling</li><li><b>Plateaus</b> raised, stepped crust</li><li><b>Hills and detail</b> roughness at two sizes</li><li><b>Mountains</b> long ranges with ridges</li><li><b>Craters</b> large and small</li></ul></div>
+    <div class="tab-panel" data-panel="t-caves" hidden><ul class="groups"><li><b>Underground</b> caverns on or off, number of layers, rock under the surface, sinkholes, shafts</li><li><b>Layer 1 to 5</b> depth, open height, floor relief, open share, chamber size, own light, plants, colours</li><li><b>Core</b> colour, glow and how fast it churns</li></ul></div>
+    <div class="tab-panel" data-panel="t-colours" hidden><ul class="groups"><li><b>Surface colours</b> nine named ground colours plus two for mountains</li><li><b>Colour bands</b> optional stripes that run round the planet</li></ul></div>
+    <div class="tab-panel" data-panel="t-life" hidden><ul class="groups"><li><b>Plants</b> seed, number of kinds, density, 11 colours</li><li><b>Animals</b> seed, number of kinds, density, 11 colours</li></ul><img src="assets/img/editor_life.png" alt="The Life tab" loading="lazy"></div>
+    <div class="tab-panel" data-panel="t-sky" hidden><ul class="groups"><li><b>Sky</b> three colours and stars</li><li><b>Atmosphere</b> rim glow, halo, shade light</li><li><b>Sun</b> day length, colour, strength</li><li><b>Clouds</b> cover, height, detail, thickness, size, colour, opacity, wind, shadow, square blocks</li><li><b>Particles in the air</b> amount, colour, size, drift, own light</li><li><b>Ring</b> and up to three <b>moons</b></li></ul><img src="assets/img/editor_sky.png" alt="Searching for cloud settings" loading="lazy"></div>
+    <div class="tab-panel" data-panel="t-more" hidden><ul class="groups"><li><b>Notes</b> your own, the game ignores them</li><li><b>Engine</b> Detail distance (1 to 6) and Detail from orbit (1 to 8)</li></ul></div>
+  </div>
+  <ul class="tips">
+    <li>The seed sits above the tabs. <span class="ui">New</span> (or <kbd>Ctrl</kbd>+<kbd>R</kbd>) gives a different planet with the same style.</li>
+    <li>The <b>↺</b> at the end of a row puts that setting back; right-click a row for <i>Reset to default</i> or <i>Reset to saved</i>.</li>
+    <li>Right-click a group's title to copy the whole group from another planet.</li>
+    <li><b>Checks</b> marks real problems with ✖ and advice with !. Play stays disabled until the ✖ problems are fixed.</li>
+    <li><b>Compare</b> shows a second preview: the saved version or any other planet, with a <i>Use theirs</i> button for each difference.</li>
+    <li><span class="ui">▶ Play</span> plays the planet exactly as it is in the editor, saved or not, from the place you picked. If the terrain differs from the saved asset, saved games are switched off for that run.</li>
+  </ul>
+
+  <h3 id="shortcuts">Shortcuts</h3>
+  <div class="seg small" role="tablist" aria-label="Platform">
+    <button role="tab" aria-selected="true" data-os="win">Windows</button>
+    <button role="tab" aria-selected="false" data-os="mac">Mac</button>
+  </div>
+  <table class="table shortcuts">
+    <tbody>
+      <tr><td><kbd class="mod">Ctrl</kbd>+<kbd>S</kbd></td><td>Save</td><td><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></td><td>Planet, Layers, Cross-section</td></tr>
+      <tr><td><kbd class="mod">Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd></td><td>Revert</td><td><kbd>4</kbd></td><td>Compare on or off</td></tr>
+      <tr><td><kbd class="mod">Ctrl</kbd>+<kbd>F</kbd></td><td>Search settings</td><td><kbd>[</kbd> <kbd>]</kbd></td><td>Layer up or down</td></tr>
+      <tr><td><kbd class="mod">Ctrl</kbd>+<kbd>R</kbd></td><td>New seed</td><td><kbd>F</kbd></td><td>Frame the view</td></tr>
+      <tr><td><kbd class="mod">Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd></td><td>Play</td><td><kbd>L</kbd></td><td>Lamp in the inside view</td></tr>
+      <tr><td><kbd>F5</kbd></td><td>Refresh the previews</td><td></td><td></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ================================================================ 8 make a planet -->
+<section id="make-a-planet" class="doc">
+  <h2><span class="num">8</span>Make your own planet</h2>
+  <p>The easiest way is to start from a planet that's close to what you want and change it bit by bit, watching the preview as you go.</p>
+  <div class="stepper" id="stepper">
+    <div class="stepper-dots" role="tablist" aria-label="Steps"></div>
+    <div class="stepper-pages">
+      <article><h4>Start from a preset</h4><p>In the Planet Editor, click <span class="ui">New › From preset</span> and pick one of the six. Give it a name. It's saved as a new <code>Planet_&lt;name&gt;</code> asset, so the original stays as it was.</p></article>
+      <article><h4>Roll the dice</h4><p>Click <span class="ui">New</span> next to the seed a few times until you like the layout of the land.</p></article>
+      <article><h4>Shape the ground</h4><p>On the Terrain tab, plateaus give raised, stepped crust; hills and detail roughen it; mountains form long ranges; craters punch holes. Numbers tells you how high things go and how much is steeper than 50°, which is too steep to walk comfortably.</p></article>
+      <article><h4>Dig the caves</h4><p>On the Caves tab, choose the number of layers, then set each one's depth, height and how open it is. Watch <i>Crossing a quarter of the planet</i> in Numbers: it's how much digging it takes to get across that layer.</p></article>
+      <article><h4>Paint it, bring it to life, set the mood</h4><p>Colours, then Life, then Sky. Clouds, the ring and the moons are all on the Sky tab.</p></article>
+      <article><h4>Clear the Checks</h4><p>Anything marked ✖ has to go before you can play. Things marked ! are advice; it's up to you.</p></article>
+      <article><h4>Save, then play</h4><p>Walk around, dig a bit, fly up and press <kbd>Tab</kbd> to see it from orbit. Go back, adjust, play again.</p></article>
+      <article><h4>Use it in a scene</h4><p>Make a scene for it in one click with the Welcome window's <span class="ui">New planet scene</span>, or drag the planet into the <span class="ui">Definition</span> field of PlanetRuntime in an existing scene.</p></article>
+    </div>
+    <div class="stepper-nav"><button class="btn btn-ghost" id="stepPrev">Back</button><span id="stepCount">1 of 8</span><button class="btn btn-primary" id="stepNext">Next</button></div>
+  </div>
+</section>
+
+<!-- ================================================================ 9 your scene -->
+<section id="your-scene" class="doc">
+  <h2><span class="num">9</span>Your own scene</h2>
+  <p>A VoxelPlanet scene needs three things: a camera tagged <i>MainCamera</i> (VoxelPlanet makes one if it's missing), a Directional Light for the sun, and a GameObject with the <b>PlanetRuntime</b> component, which loads the planet and runs everything else. The Welcome window's New planet scene makes exactly these.</p>
+  <h3>The PlanetRuntime component</h3>
+  <input class="filter" type="search" placeholder="Filter fields" data-filter="#fieldTable" aria-label="Filter fields">
+  <table class="table" id="fieldTable">
+    <thead><tr><th>Field</th><th>What it's for</th></tr></thead>
+    <tbody>
+      <tr><td>Definition</td><td>The planet to load. Empty gives you Ember.</td></tr>
+      <tr><td>Resources</td><td>The <code>Data/RenderResources</code> asset: shaders and player models. Leave it set, or a build may leave out shaders it needs.</td></tr>
+      <tr><td>Input Actions</td><td>The <code>Input/InputSystem_Actions</code> asset with the player's controls.</td></tr>
+      <tr><td>Start In Orbit</td><td>Start in orbit view instead of on the ground.</td></tr>
+      <tr><td>Spawn Direction</td><td>Where on the planet the player first appears.</td></tr>
+      <tr><td>Enable Life</td><td>Plants and animals on or off.</td></tr>
+      <tr><td>Enable Persistence</td><td>Saved games on or off.</td></tr>
+      <tr><td>Save Slot</td><td>Which slot folder to use.</td></tr>
+      <tr><td>Load On Start</td><td>Load the slot's save when the game starts.</td></tr>
+      <tr><td>Autosave</td><td>Save the changes every two minutes.</td></tr>
+      <tr><td>Quality</td><td>Low, Medium or High (see Performance).</td></tr>
+      <tr><td>Movement Dust</td><td>Dust from footsteps, landings and the jetpack near the ground.</td></tr>
+      <tr><td>Camera Shake</td><td>A small shake while the jetpack fires and after a hard landing.</td></tr>
+      <tr><td>Capture Cursor</td><td>Hide and lock the mouse while playing; <kbd>Esc</kbd> frees it.</td></tr>
+      <tr><td>Show Hud</td><td>The on-screen display at start (<kbd>F3</kbd>).</td></tr>
+      <tr><td>Show Stats</td><td>Statistics at start (<kbd>F4</kbd>).</td></tr>
+      <tr><td>Debug Fly Camera</td><td>Start with the free camera (<kbd>F1</kbd>).</td></tr>
+      <tr><td>Light underground</td><td>How fast daylight fades below the surface, and how bright the caves' own light is.</td></tr>
+      <tr><td>Helmet lamp</td><td>Whether it starts on, plus colour, brightness, range and beam angle.</td></tr>
+    </tbody>
+  </table>
+  <p><b>Building the game</b> needs nothing special: add your scene to Build Settings, keep Resources set, and build. Each planet bakes its surface cache the first time it runs on the player's machine, in about a second.</p>
+</section>
+
+<!-- ================================================================ 10 performance -->
+<section id="performance" class="doc">
+  <h2><span class="num">10</span>Performance</h2>
+  <p>VoxelPlanet does its heavy lifting in Burst jobs spread over all your CPU cores. If you need more speed, these make a difference, roughly in order of impact:</p>
+  <table class="table">
+    <thead><tr><th>Setting</th><th>Where</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td>Quality</td><td>PlanetRuntime</td><td><i>Low</i> cuts terrain detail to 75 %, turns off MSAA and stops plants casting shadows; <i>Medium</i> cuts detail to 90 %.</td></tr>
+      <tr><td>Detail distance</td><td>Planet Editor, More</td><td>How far full terrain detail reaches (1 to 6, default 2).</td></tr>
+      <tr><td>Detail from orbit</td><td>Planet Editor, More</td><td>The same for orbit view (1 to 8, default 4).</td></tr>
+      <tr><td>Plant and animal density</td><td>Planet Editor, Life</td><td>Fewer things to draw. Cave layers have their own plant setting.</td></tr>
+      <tr><td>Cloud detail</td><td>Planet Editor, Sky</td><td>Bigger detail, fewer cloud triangles.</td></tr>
+      <tr><td>Volumetric fog</td><td><code>Data/PostProcessing</code></td><td>Fewer <i>Steps</i> or more <i>Downsample</i> is faster.</td></tr>
+    </tbody>
+  </table>
+  <p>Press <kbd>F4</kbd> while playing to watch frame times as you change one thing at a time. The <code>Scenes</code> folder also has five benchmark scenes that play themselves and report how fast they ran: <i>SurfaceRun</i>, <i>OrbitDescent</i>, <i>EditStorm</i>, <i>Life</i> and the ten-minute <i>Soak</i>. They use their own save slot.</p>
+</section>
+
+<!-- ================================================================ 11 troubleshooting -->
+<section id="troubleshooting" class="doc">
+  <h2><span class="num">11</span>Troubleshooting</h2>
+  <input class="filter" type="search" placeholder="What do you see?" data-filter="#troubleList" aria-label="Filter problems">
+  <div class="accordion" id="troubleList">
+    <details><summary>Everything is pink.</summary><p>The project isn't using URP. Open <span class="ui">Tools › DEV505 › VoxelPlanet › Welcome</span> and click the button next to <i>Universal Render Pipeline in use</i>.</p></details>
+    <details><summary>Some surfaces are cyan for a few seconds.</summary><p>Unity is compiling shaders in the background. Give it a moment; it only happens after shaders change.</p></details>
+    <details><summary>The keys do nothing, or the Console complains about input.</summary><p>The Input System isn't switched on. The Welcome window fixes it with one click.</p></details>
+    <details><summary>I can't click anything in the editor while playing.</summary><p>The game has the mouse. Press <kbd>Esc</kbd>.</p></details>
+    <details><summary>My first click after Esc didn't dig.</summary><p>That's on purpose: the first click only captures the mouse again.</p></details>
+    <details><summary>There's no fog and no light shafts.</summary><p>Depth Texture is off in your URP asset. The Welcome window turns it on.</p></details>
+    <details><summary>My saved game didn't load.</summary><p>The planet's terrain changed since the save was made, so VoxelPlanet started it fresh. See Saved games.</p></details>
+    <details><summary>My changes to Main.unity are gone.</summary><p>Setup Project rebuilds that scene every time it runs. Make your own scenes with the Welcome window instead.</p></details>
+    <details><summary>Play is greyed out in the Planet Editor.</summary><p>Look at Checks. Something is marked ✖ and needs fixing first.</p></details>
+    <details><summary>The Planet Editor preview stays dark or says it's building.</summary><p>The planet is being baked; the first time takes a second or two. Press <kbd>F5</kbd> in the window or click Refresh.</p></details>
+    <details><summary>Changes in the Planet Editor don't show up in the preview.</summary><p>Auto-refresh is off. Turn it on, or press Refresh.</p></details>
+    <details><summary>The Console says a layer is missing.</summary><p>Open the Welcome window and click <i>Add</i> next to Layers.</p></details>
+  </div>
+  <p class="empty-note" id="troubleEmpty" hidden>Nothing matches. Ask on Discord and we'll add it here.</p>
+</section>
+
+<!-- ================================================================ 12 folders -->
+<section id="folders" class="doc">
+  <h2><span class="num">12</span>What's where</h2>
+  <p>Everything lives in one folder, so it's easy to find, move or remove. You can move the whole folder elsewhere in your project; the tools find it wherever it is.</p>
+  <div class="tree">
+    <details open><summary>Assets/DEV505/VoxelPlanet</summary>
+      <ul>
+        <li><span class="f">Data</span> the planets, RenderResources, PostProcessing</li>
+        <li><span class="f">Documentation</span> the PDF guide</li>
+        <li><span class="f">Input</span> the player's controls</li>
+        <li><span class="f">Models</span> the astronaut and the terrain tool</li>
+        <li><span class="f">Scenes</span> Main (start here) and the benchmark scenes</li>
+        <li><details><summary>Scripts</summary>
+          <ul>
+            <li><span class="f">Core</span> planet settings and shared maths</li>
+            <li><span class="f">Terrain</span> voxels, meshing, level of detail, editing</li>
+            <li><span class="f">Life</span> plants and animals</li>
+            <li><span class="f">Rendering</span> shaders, sky, clouds, fog</li>
+            <li><span class="f">Game</span> PlanetRuntime and the on-screen display</li>
+            <li><span class="f">Player</span> movement, camera, the terrain tool, input</li>
+            <li><span class="f">Persistence</span> saved games</li>
+            <li><span class="f">Editor</span> the Welcome window, the Planet Editor, Setup Project</li>
+            <li><span class="f">Tests</span> automated tests</li>
+          </ul></details></li>
+        <li><span class="f">Settings</span> URP pipeline assets and volume profiles</li>
+      </ul>
+    </details>
+  </div>
+</section>
+
+<!-- ================================================================ 13 support -->
+<section id="support" class="doc">
+  <h2><span class="num">13</span>Credits and support</h2>
+  <div class="cards three">
+    <a class="card link" id="mailCard" href="#"><span class="card-icon"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></span><h3>Email support</h3><p>Tell me your Unity version, what you did just before the problem, and what the Console says.</p></a>
+    <a class="card link" id="discordCard" href="#" target="_blank" rel="noopener"><span class="card-icon"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg></span><h3>Discord</h3><p>Questions, ideas, planets you've made. Come and say hi.</p></a>
+    <a class="card link" href="assets/VoxelPlanet_User_Guide.pdf" download><span class="card-icon"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h8l5 5v13H6z"/><path d="M14 3v5h5"/></svg></span><h3>The PDF guide</h3><p>Everything on this page, to keep offline or print.</p></a>
+  </div>
+  <p class="muted">The Transvoxel lookup tables used for meshing are copyright 2009 Eric Lengyel and distributed under the MIT License.</p>
+  <p>Thanks for picking up VoxelPlanet. Have fun with your planets.</p>
+</section>
+
+  </main>
+</div>
+
+<footer class="footer">
+  <span>VoxelPlanet by dev505</span>
+  <a href="#top">Back to the top ↑</a>
+</footer>
+
+<button class="to-top" id="toTop" aria-label="Back to the top" hidden>↑</button>
+<div class="lightbox" id="lightbox" hidden><img alt=""><button aria-label="Close">✕</button></div>
+
+<script src="assets/js/site.js"></script>
+<script type="module" src="assets/js/planet.js"></script>
+</body>
+</html>
