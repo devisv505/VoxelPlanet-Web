@@ -399,6 +399,21 @@
   $('#stepNext').addEventListener('click', function () { showStep(at === pages.length - 1 ? 0 : at + 1); });
   showStep(0);
 
+  // ---------------------------------------------------------------- video
+  // The YouTube player is only loaded when the visitor clicks, so nothing comes from YouTube before that.
+  $$('[data-youtube]').forEach(function (poster) {
+    poster.addEventListener('click', function () {
+      var frame = document.createElement('iframe');
+      frame.src = 'https://www.youtube-nocookie.com/embed/' + poster.getAttribute('data-youtube') + '?autoplay=1&rel=0';
+      frame.title = poster.getAttribute('data-title');
+      frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+      frame.referrerPolicy = 'strict-origin-when-cross-origin';
+      frame.allowFullscreen = true;
+      poster.replaceWith(frame);
+      frame.focus();
+    });
+  });
+
   // ---------------------------------------------------------------- 3D planet fallback
   // planet.js sets window.vpPlanetReady once it draws. Without WebGL or the CDN, show the screenshot.
   setTimeout(function () {
